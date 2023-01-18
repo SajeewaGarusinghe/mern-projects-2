@@ -4,24 +4,33 @@ const mongoose = require('mongoose');
 
 const PostMessage = require('../models/postMessage.js');
 
-// @desc    Get posts
-// @route   GET /api/posts
-// @access  Private
-
-const getPosts = asyncHandler(async (req, res) => {
-  const posts = await PostMessage.find();
-  res.status(200).json(posts);
-});
 
 // @desc    Get post
 // @route   GET /api/posts/:id
 // @access  Private
 
 const getPost = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const post = await PostMessage.find(id);
-  res.status(200).json(posts);
+  const id = req.query.id;
+  // res.status(200).json(id);
+  const post = await PostMessage.find({_id:id});
+
+  if (!post) {
+    res.status(400);
+    throw new Error(`No post with id: ${id}`);
+  }
+   res.status(200).json(id);
 });
+
+// @desc    Get posts
+// @route   GET /api/posts
+// @access  Private
+
+const getPosts = asyncHandler(async (req, res) => {
+  const posts = await PostMessage.find();
+  res.status(200).json("mother fucker");
+});
+
+
 
 const createPost = asyncHandler(async (req, res) => {
   const { title, message, selectedFile, creator, tags } = req.body;
@@ -41,10 +50,43 @@ const createPost = asyncHandler(async (req, res) => {
 });
 
 const updatePost = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  // const { id } = req.params;
+  const id = req.query.id;
   const { title, message, creator, selectedFile, tags } = req.body;
 
-  const post = await postMessage.findbyId(id);
+  const post = await PostMessage.findById(id);
+  if (!post) {
+    res.status(400);
+    throw new Error(`No post with id: ${id}`);
+  }
+
+  const updatedPost = await PostMessage.findByIdAndUpdate(id, req.body, {
+    new: true,
+  });
+
+  res.status(201).json(updatedPost);
+});
+
+const deletePost = asyncHandler(async (req, res) => {
+  // const { id } = req.params;
+  const id = req.query.id;
+
+  const post = await PostMessage.findById(id);
+  if (!post) {
+    res.status(400);
+    throw new Error(`No post with id: ${id}`);
+  }
+
+  await post.remove();
+
+  res.status(200).json({ message: ` post deleted with id: ${id}` });
+});
+
+const likePost = asyncHandler(async (req, res) => {
+  // const { id } = req.params;
+  const id = req.query.id;
+
+  const post = await PostMessage.findById(id);
   if (!post) {
     res.status(400);
     throw new Error(`No post with id: ${id}`);
@@ -52,38 +94,18 @@ const updatePost = asyncHandler(async (req, res) => {
 
   const updatedPost = await PostMessage.findByIdAndUpdate(
     id,
-    { creator, title, message, tags, selectedFile, _id: id },
+    { likeCount: post.likeCount + 1 },
     { new: true }
   );
 
   res.status(201).json(updatedPost);
 });
-//  const deletePost = asyncHandler( async (req, res) => {
-//     const { id } = req.params;
 
-//     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
-
-//     await PostMessage.findByIdAndRemove(id);
-
-//     res.json({ message: "Post deleted successfully." });
-// }
-// )
-// const likePost = asyncHandler( async (req, res) => {
-//     const { id } = req.params;
-
-//     if (!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send(`No post with id: ${id}`);
-
-//     const post = await PostMessage.findById(id);
-
-//     const updatedPost = await PostMessage.findByIdAndUpdate(id, { likeCount: post.likeCount + 1 }, { new: true });
-
-//     res.json(updatedPost);
-// }
-
-// )
 module.exports = {
   getPost,
   getPosts,
   createPost,
   updatePost,
+  deletePost,
+  likePost,
 };

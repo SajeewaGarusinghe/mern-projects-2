@@ -26,9 +26,9 @@ const postSchema=mongoose.Schema({
         default: new Date(),
     },
 },
-    {
-        timestamps: true, //to create updated and created at field automatically
-      }
+    // {
+    //     timestamps: true, //to create updated and created at field automatically
+    //   }
 )
 
 module.exports=mongoose.model('Post',postSchema)
